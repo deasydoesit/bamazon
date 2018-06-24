@@ -26,7 +26,6 @@ function start() {
         choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product"]
         })
         .then(function(answer) {
-        // based on their answer, either call the bid or the post functions
             if (answer.options === "View Products for Sale") {
                 viewProducts();
             }
@@ -92,25 +91,27 @@ function addInventory() {
                 connection.query(
                     `UPDATE products SET stock_quantity=stock_quantity+${answers.howMany} WHERE product_name="${answers.whichToIncrease}"`,
                     function (err, res) {
-                    if (err) throw err;
-                    if (res.affectedRows === 0) {
-                        console.log("\n\n");
-                        console.log(`Hey! ${answers.whichToIncrease} isn't an item that we currently offer!`);
-                        console.log("\n\n");
-                        setTimeout(function () {
-                            start();
-                        }, 3000);
-                    } else {
-                        console.log("\n\n");
-                        console.log(`You have increased the quanity of ${answers.whichToIncrease} by ${answers.howMany}`);
-                        console.log("\n\n");
-                        setTimeout(function () {
-                            start();
-                        }, 3000);
+                        if (err) throw err;
+                        if (res.affectedRows === 0) {
+                            console.log("\n\n");
+                            console.log(`Hey! ${answers.whichToIncrease} isn't an item that we currently offer!`);
+                            console.log("\n\n");
+                            setTimeout(function () {
+                                start();
+                            }, 3000);
+                        } 
+                        else {
+                            console.log("\n\n");
+                            console.log(`You have increased the quanity of ${answers.whichToIncrease} by ${answers.howMany}`);
+                            console.log("\n\n");
+                            setTimeout(function () {
+                                start();
+                            }, 3000);
                         }
                     }
                 );
-            } else {
+            } 
+            else {
                 console.log("\n\n");
                 console.log(`Hey! ${answers.howMany} isn't a valid input! Please provide an integer!`);
                 console.log("\n\n");
@@ -118,5 +119,45 @@ function addInventory() {
                     start();
                 }, 3000);
             }
+        })
+}
+
+function addProduct() {
+    inquirer
+        .prompt([{
+            type: "input",
+            name: "item",
+            message: "What item would you like to add?",
+        }, 
+        {
+            type: "input",
+            name: "department",
+            message: "In which department should it be?"
+        },
+        {
+            type: "input",
+            name: "price",
+            message: "What should the price be?"
+        },
+        {
+            type: "input",
+            name: "quantity",
+            message: "How many are in stock?"
+        }
+        ])
+        .then(function(answers) {
+            connection.query(
+                `INSERT INTO products (product_name, department_name, price, stock_quantity)
+                VALUES ("${answers.item}", "${answers.department}", ${answers.price}, ${answers.quantity})`,
+                function (err, res) {
+                if (err) throw err;
+                console.log("\n\n");
+                console.log(`You have created an entry for ${answers.item} in the ${answers.department} department, with at a price of $${answers.price}, with a quantiy of ${answers.quantity}`);
+                console.log("\n\n");
+                setTimeout(function () {
+                    start();
+                }, 3000);
+                }
+            );
         })
 }
