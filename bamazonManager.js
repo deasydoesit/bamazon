@@ -27,18 +27,18 @@ function start() {
         })
         .then(function(answer) {
         // based on their answer, either call the bid or the post functions
-        if (answer.options === "View Products for Sale") {
-            viewProducts();
-        }
-        else if (answer.options === "View Low Inventory") {
-            viewLow();
-        } 
-        else if (answer.options === "Add to Inventory") {
-            addInventory();
-        }
-        else if (answer.options === "Add New Product") {
-            addProduct();
-        }
+            if (answer.options === "View Products for Sale") {
+                viewProducts();
+            }
+            else if (answer.options === "View Low Inventory") {
+                viewLow();
+            } 
+            else if (answer.options === "Add to Inventory") {
+                addInventory();
+            }
+            else if (answer.options === "Add New Product") {
+                addProduct();
+            }
         });
 }
 
@@ -75,5 +75,48 @@ function viewLow() {
 }
 
 function addInventory() {
-
+    inquirer
+        .prompt([{
+            type: "input",
+            name: "whichToIncrease",
+            message: "For which item would you like to increase the stock?",
+        }, 
+        {
+            type: "input",
+            name: "howMany",
+            message: "How many would you like to add?"
+        }]
+        )
+        .then(function(answers) {
+            if (Number.isInteger(parseInt(answers.howMany))) {
+                connection.query(
+                    `UPDATE products SET stock_quantity=stock_quantity+${answers.howMany} WHERE product_name="${answers.whichToIncrease}"`,
+                    function (err, res) {
+                    if (err) throw err;
+                    if (res.affectedRows === 0) {
+                        console.log("\n\n");
+                        console.log(`Hey! ${answers.whichToIncrease} isn't an item that we currently offer!`);
+                        console.log("\n\n");
+                        setTimeout(function () {
+                            start();
+                        }, 3000);
+                    } else {
+                        console.log("\n\n");
+                        console.log(`You have increased the quanity of ${answers.whichToIncrease} by ${answers.howMany}`);
+                        console.log("\n\n");
+                        setTimeout(function () {
+                            start();
+                        }, 3000);
+                        }
+                    }
+                );
+            } else {
+                console.log("\n\n");
+                console.log(`Hey! ${answers.howMany} isn't a valid input! Please provide an integer!`);
+                console.log("\n\n");
+                setTimeout(function () {
+                    start();
+                }, 3000);
+            }
+        })
 }
