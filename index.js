@@ -10,6 +10,8 @@ var connection = mysql.createConnection({
 });
 
 var items = [];
+var quantity = {};
+var price = {}
 
 connection.connect(function(err) {
   if (err) throw err;
@@ -18,15 +20,19 @@ connection.connect(function(err) {
 });
 
 function start() { 
-    console.log("\n\n\n    These are the items for sale:")
+    console.log("\n\n    These are the items for sale:")
     connection.query('SELECT * FROM products', function (err, res) {
         if (err) throw error;
         for (var i = 0; i < res.length; i++) {
-            console.log("       " + res[i].product_name + ":" + " $" + res[i].price);
+            console.log("       " + res[i].product_name + ":" + " $" + res[i].price + ", QTY " + res[i].stock_quantity);
             items.push(res[i].product_name);
+            quantity[res[i].product_name] = res[i].stock_quantity;
+            price[res[i].product_name] = res[i].price;
         }
-        console.log("\n\n\n")
-        askUser()
+        console.log("\n\n");
+        setTimeout(function () {
+            askUser();
+          }, 3000);
   });
   
 } 
@@ -46,7 +52,25 @@ function askUser() {
         }]
         )
         .then(function(answers) {
-            // based on their answer, either call the bid or the post functions
-           console.log(answers);
+            if (quantity[answers.whatToBuy] < answers.howMany) {
+                console.log("\n\nInsufficient quantity!");
+                setTimeout(function () {
+                    start();
+                  }, 1000);
+            } else {
+                connection.query(
+                    `UPDATE products SET stock_quantity=${quantity[answers.whatToBuy] - answers.howMany} WHERE product_name="${answers.whatToBuy}"`,
+                    function (err, res) {
+                      if (err) throw err;
+                      console.log("\n\n");
+                      console.log(`Your total is $${answers.howMany *  price[answers.whatToBuy]}`);
+                      console.log("\n\n");
+                      // re-prompt the user for if they want to bid or post
+                      setTimeout(function () {
+                        askUser();
+                      }, 3000);
+                    }
+                );
+            }
         });
 }
